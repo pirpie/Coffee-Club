@@ -1,0 +1,2322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>☕ Monthly Coffee Club</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:  #2D1B69;   /* deep indigo  — borders & shadows   */
+      --brown:  #7C3AED;   /* vivid violet — primary UI           */
+      --mid:    #EC4899;   /* hot pink     — secondary elements   */
+      --tan:    #DDD6FE;   /* soft lilac   — light accents        */
+      --yellow: #FBBF24;   /* warm gold    — highlights & winner  */
+      --cream:  #FAF5FF;   /* pale lavender — backgrounds         */
+      --paper:  #FEFCFF;   /* near-white lavender — cards         */
+      --red:    #F97316;   /* coral orange — danger / spin        */
+      --green:  #34D399;   /* mint green   — success / voted      */
+      --purple: #F472B6;   /* candy pink   — accent               */
+      --sky:    #818CF8;   /* periwinkle   — distance tags        */
+    }
+
+    /* ── BASE ─────────────────────────────────────────────── */
+    body {
+      font-family: 'VT323', monospace;
+      background-color: var(--cream);
+      background-image:
+        linear-gradient(rgba(124,58,237,.09) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,.09) 1px, transparent 1px);
+      background-size: 16px 16px;
+      min-height: 100vh;
+      color: var(--black);
+      image-rendering: pixelated;
+    }
+
+    /* ── PIXEL UTILS ──────────────────────────────────────── */
+    .px-border { border: 3px solid var(--black); }
+    .px-shadow { box-shadow: 5px 5px 0 var(--black); }
+    .px-shadow-sm { box-shadow: 3px 3px 0 var(--black); }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .header {
+      background: linear-gradient(140deg, #1e0a5e 0%, #7C3AED 55%, #EC4899 100%);
+      border-bottom: 5px solid var(--black);
+      padding: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Pixel scanlines overlay */
+    .header::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(0,0,0,.06) 3px,
+        rgba(0,0,0,.06) 4px
+      );
+      pointer-events: none;
+    }
+
+    .header-inner {
+      padding: 2rem 1.5rem 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header-deco {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .pixel-bean {
+      position: absolute;
+      font-size: 1.5rem;
+      opacity: .35;
+      animation: pb-float steps(4, end) 2.4s infinite;
+    }
+    @keyframes pb-float {
+      0%   { transform: translateY(0); }
+      25%  { transform: translateY(-6px); }
+      50%  { transform: translateY(-10px); }
+      75%  { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    /* Big pixel title */
+    .h-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(1.1rem, 3.5vw, 2rem);
+      color: var(--yellow);
+      text-shadow:
+        3px 3px 0 var(--black),
+        -1px -1px 0 rgba(0,0,0,.3);
+      letter-spacing: 2px;
+      line-height: 1.6;
+    }
+
+    .h-sub {
+      font-size: 1.6rem;
+      color: var(--tan);
+      margin-top: .4rem;
+      letter-spacing: 1px;
+    }
+
+    .month-pill {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--black);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      padding: .45rem 1rem;
+      border: 2px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      margin-top: .9rem;
+      letter-spacing: 1px;
+    }
+
+    /* Pixel steam animation in header */
+    .steam-row {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      padding: .6rem 0 1.2rem;
+      position: relative;
+      z-index: 1;
+    }
+    .steam-col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .steam-px {
+      width: 6px; height: 6px;
+      background: rgba(255,230,255,.75);
+      animation: steam-rise steps(1) 1.2s infinite;
+    }
+    .steam-col .steam-px:nth-child(1) { animation-delay: 0s; }
+    .steam-col .steam-px:nth-child(2) { animation-delay: .2s; }
+    .steam-col .steam-px:nth-child(3) { animation-delay: .4s; }
+    @keyframes steam-rise {
+      0%   { opacity: 0; transform: translateY(0); }
+      30%  { opacity: 1; }
+      70%  { opacity: .5; transform: translateY(-10px); }
+      100% { opacity: 0; transform: translateY(-18px); }
+    }
+
+    /* Score strip */
+    .score-strip {
+      background: var(--black);
+      color: var(--yellow);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      padding: .45rem 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      letter-spacing: 1px;
+      border-top: 3px solid var(--brown);
+    }
+    .score-item span { color: #fff; }
+
+    /* ── MAIN ─────────────────────────────────────────────── */
+    .main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* ── PIXEL PANELS (shared card base) ──────────────────── */
+    .panel {
+      background: var(--paper);
+      border: 3px solid var(--black);
+      box-shadow: 5px 5px 0 var(--black);
+    }
+
+
+    /* ── BUTTONS ──────────────────────────────────────────── */
+    .btn {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      line-height: 1;
+      padding: .7rem 1rem;
+      border: 3px solid var(--black);
+      cursor: pointer;
+      transition: transform .05s, box-shadow .05s;
+      letter-spacing: .5px;
+      display: inline-block;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .btn:active {
+      transform: translate(3px, 3px) !important;
+      box-shadow: 0 0 0 var(--black) !important;
+    }
+
+    .btn-brown {
+      background: var(--brown);
+      color: var(--yellow);
+      box-shadow: 3px 3px 0 var(--black);
+    }
+    .btn-brown:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--black); }
+
+    .btn-yellow {
+      background: var(--yellow);
+      color: var(--black);
+      box-shadow: 4px 4px 0 var(--black);
+    }
+    .btn-yellow:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--black); }
+
+    .btn-red {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 4px 4px 0 var(--black);
+    }
+    .btn-red:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--black); }
+
+    .btn-green {
+      background: var(--green);
+      color: var(--black);
+      box-shadow: 4px 4px 0 var(--black);
+    }
+    .btn-green:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--black); }
+
+    .btn-purple {
+      background: var(--purple);
+      color: #fff;
+      box-shadow: 4px 4px 0 var(--black);
+    }
+    .btn-purple:hover { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--black); }
+
+    .btn-lg { padding: .85rem 1.3rem; font-size: .65rem; }
+
+    /* ── ACTION BAR ───────────────────────────────────────── */
+    .action-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .action-bar h2 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(.7rem, 2vw, 1rem);
+      color: var(--brown);
+      line-height: 1.6;
+    }
+    .action-right { display: flex; gap: .75rem; flex-wrap: wrap; }
+
+    /* ── CARDS GRID ───────────────────────────────────────── */
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+
+    /* ── COFFEE CARD ──────────────────────────────────────── */
+    .card {
+      background: var(--paper);
+      border: 3px solid var(--black);
+      box-shadow: 6px 6px 0 var(--black);
+      position: relative;
+      padding: 1.25rem;
+      transition: transform .08s, box-shadow .08s;
+    }
+    .card:hover {
+      transform: translate(-2px,-2px);
+      box-shadow: 8px 8px 0 var(--black);
+    }
+
+    /* Pixel corner decorations */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: -3px; left: -3px;
+      width: 10px; height: 10px;
+      background: linear-gradient(135deg, var(--mid), var(--purple));
+      border-right: 3px solid var(--black);
+      border-bottom: 3px solid var(--black);
+    }
+
+    .card.winner {
+      background: linear-gradient(135deg, #FFFBEB 0%, #FFF3C4 100%);
+      border-color: var(--yellow);
+      box-shadow: 6px 6px 0 var(--black);
+    }
+    .card.winner::before { background: var(--yellow); border-color: var(--black); }
+
+    /* Winner top banner */
+    .winner-banner {
+      background: var(--yellow);
+      border: 2px solid var(--black);
+      border-left: none; border-right: none;
+      font-family: 'Press Start 2P', monospace;
+      font-size: .5rem;
+      color: var(--black);
+      padding: .3rem .6rem;
+      margin: -1.25rem -1.25rem .9rem -1.25rem;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .winner-star {
+      animation: star-spin steps(4) .8s infinite;
+      display: inline-block;
+    }
+    @keyframes star-spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .my-vote-tag {
+      position: absolute;
+      top: -3px; right: 10px;
+      background: var(--green);
+      color: var(--black);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .45rem;
+      padding: .25rem .5rem;
+      border: 2px solid var(--black);
+      border-top: none;
+      letter-spacing: .5px;
+    }
+
+    .card-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(.65rem, 2vw, .85rem);
+      color: var(--brown);
+      line-height: 1.8;
+      margin-bottom: .5rem;
+      padding-right: 1rem;
+      word-break: break-word;
+    }
+    .card-by {
+      font-size: 1.15rem;
+      color: #888;
+      margin-bottom: .8rem;
+    }
+    .card-by strong { color: var(--brown); }
+
+    /* Pixel speech bubble for vibe */
+    .card-vibe {
+      position: relative;
+      background: var(--cream);
+      border: 2px solid var(--black);
+      padding: .5rem .75rem;
+      font-size: 1.25rem;
+      color: var(--black);
+      margin-bottom: 1rem;
+      line-height: 1.4;
+    }
+    .card-vibe::after {
+      content: '';
+      position: absolute;
+      bottom: -10px; left: 14px;
+      width: 8px; height: 8px;
+      background: var(--cream);
+      border-right: 2px solid var(--black);
+      border-bottom: 2px solid var(--black);
+      transform: rotate(45deg);
+    }
+
+    .card-addr {
+      font-size: 1.1rem;
+      color: #777;
+      margin-bottom: .6rem;
+      word-break: break-all;
+    }
+    .card-addr a {
+      color: var(--brown);
+      text-decoration: none;
+      border-bottom: 2px solid var(--tan);
+    }
+    .card-addr a:hover { color: var(--black); }
+
+    .dist-tag {
+      display: inline-block;
+      background: var(--sky);
+      color: var(--black);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .5rem;
+      padding: .3rem .65rem;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      margin-bottom: .9rem;
+      letter-spacing: .5px;
+    }
+
+    /* ── VOTER NAMES ──────────────────────────────────────── */
+    .voter-names { display:flex; flex-wrap:wrap; gap:.25rem; margin-top:.5rem; }
+    .voter-chip {
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      background: var(--tan);
+      color: var(--black);
+      padding: .1rem .45rem;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      line-height: 1.4;
+    }
+
+    /* ── TEAM SECTION ─────────────────────────────────────── */
+    .team-section {
+      background: var(--paper);
+      border: 3px solid var(--black);
+      box-shadow: 5px 5px 0 var(--black);
+      padding: 1.25rem;
+      margin: 2rem 0;
+    }
+    .team-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .65rem;
+      color: var(--brown);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .team-grid { display: flex; flex-wrap: wrap; gap: .75rem; }
+    .team-empty { font-family: 'VT323', monospace; font-size: 1.2rem; color: #aaa; padding: .5rem; }
+    .member-card {
+      position: relative;
+      background: var(--cream);
+      border: 3px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      padding: .5rem .6rem .4rem;
+      text-align: center;
+      min-width: 72px;
+    }
+    .member-card.mine { border-color: var(--yellow); box-shadow: 3px 3px 0 var(--yellow); }
+    .mine-tag {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .35rem;
+      background: var(--yellow);
+      color: var(--black);
+      padding: .15rem .3rem;
+      margin-bottom: .3rem;
+      display: inline-block;
+    }
+    .member-name { font-family: 'Press Start 2P', monospace; font-size: .42rem; color: var(--black); margin-top: .25rem; word-break: break-all; }
+    .member-del { position: absolute; top: 2px; right: 3px; background: none; border: none; cursor: pointer; color: #ccc; font-size: .7rem; line-height: 1; padding: 0; }
+    .member-del:hover { color: var(--red); }
+
+    /* ── AVATAR BUILDER ───────────────────────────────────── */
+    .av-builder { display: flex; gap: 1.25rem; align-items: flex-start; margin-bottom: 1rem; }
+    .av-options { flex: 1; display: flex; flex-direction: column; gap: .6rem; }
+    .av-preview-wrap {
+      flex-shrink: 0;
+      border: 3px solid var(--black);
+      box-shadow: 4px 4px 0 var(--black);
+      background: var(--tan);
+      padding: .5rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .av-section { display: flex; flex-direction: column; gap: .3rem; }
+    .av-label { font-family: 'Press Start 2P', monospace; font-size: .45rem; color: var(--brown); }
+    .av-row { display: flex; gap: .3rem; flex-wrap: wrap; }
+    .av-opt {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .4rem;
+      padding: .3rem .5rem;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      cursor: pointer;
+      background: var(--cream);
+      color: var(--black);
+      transition: transform .07s;
+      line-height: 1.5;
+    }
+    .av-opt:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--black); }
+    .av-opt.selected { background: var(--brown); color: var(--yellow); border-color: var(--yellow); transform: translate(-2px,-2px); box-shadow: 4px 4px 0 var(--yellow); }
+    .av-swatch { width: 28px; height: 28px; padding: 0; }
+    .av-swatch.selected { box-shadow: 3px 3px 0 var(--yellow); border-color: var(--yellow); }
+    .av-hair-opt { border-bottom: 3px solid var(--hc, #000) !important; }
+    .av-hair-opt.selected { background: var(--brown) !important; color: var(--yellow) !important; }
+    .av-cloth-opt { color: #fff !important; }
+    .av-cloth-opt.selected { box-shadow: 3px 3px 0 var(--yellow); border-color: var(--yellow); }
+    #av-name-input {
+      font-family: 'VT323', monospace; font-size: 1.3rem;
+      border: 2px solid var(--black); padding: .3rem .5rem;
+      background: var(--cream); color: var(--black); width: 100%;
+    }
+
+    /* ── PICK MEMBER ──────────────────────────────────────── */
+    .pick-member-grid {
+      display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center;
+      max-height: 280px; overflow-y: auto; padding: .25rem;
+    }
+    .pick-member-card {
+      font-family: 'Press Start 2P', monospace;
+      background: var(--cream);
+      border: 3px solid var(--black);
+      box-shadow: 3px 3px 0 var(--black);
+      padding: .5rem .6rem .4rem;
+      cursor: pointer; text-align: center; min-width: 72px;
+      transition: transform .07s;
+    }
+    .pick-member-card:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 var(--black); border-color: var(--brown); }
+    .pick-name { font-size: .38rem; margin-top: .25rem; color: var(--black); }
+
+    /* ── VOTE SECTION ─────────────────────────────────────── */
+    .vote-row {
+      display: flex;
+      align-items: center;
+      gap: .9rem;
+      padding-top: .9rem;
+      border-top: 3px solid var(--black);
+      /* Dashed border effect */
+      border-top-style: dashed;
+      margin-top: .5rem;
+    }
+
+    /* Chunky pixel thermometer */
+    .thermo {
+      width: 28px;
+      flex-shrink: 0;
+      border: 3px solid var(--black);
+      background: var(--cream);
+      overflow: hidden;
+      position: relative;
+      height: 64px;
+    }
+    .thermo-fill {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background-image: repeating-linear-gradient(
+        to top,
+        var(--brown) 0px, var(--brown) 8px,
+        var(--mid) 8px, var(--mid) 10px
+      );
+      transition: height .5s steps(6, end);
+    }
+    .thermo-label {
+      position: absolute;
+      top: 2px; left: 0; right: 0;
+      text-align: center;
+      font-size: 14px;
+      z-index: 1;
+    }
+
+    .vote-info { flex: 1; min-width: 0; }
+    .vote-count {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .7rem;
+      color: var(--brown);
+      line-height: 2;
+    }
+    .vote-cups {
+      font-size: 1.1rem;
+      color: var(--mid);
+      min-height: 1.4rem;
+      letter-spacing: 1px;
+    }
+
+    /* Segmented pixel vote bar */
+    .vote-bar {
+      height: 12px;
+      background: var(--cream);
+      border: 2px solid var(--black);
+      overflow: hidden;
+      margin-top: .4rem;
+      position: relative;
+    }
+    .vote-bar-fill {
+      height: 100%;
+      background-image: repeating-linear-gradient(
+        to right,
+        var(--brown) 0px, var(--brown) 10px,
+        var(--mid) 10px, var(--mid) 12px,
+        transparent 12px, transparent 14px
+      );
+      transition: width .5s steps(8, end);
+    }
+
+    .btn-vote { font-size: .5rem; padding: .6rem .8rem; flex-shrink: 0; }
+
+    .btn-del {
+      position: absolute;
+      bottom: -3px; right: -3px;
+      background: var(--red);
+      color: #fff;
+      border: 2px solid var(--black);
+      box-shadow: -2px -2px 0 var(--black);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .38rem;
+      padding: .28rem .45rem;
+      cursor: pointer;
+      line-height: 1;
+      letter-spacing: .5px;
+    }
+    .btn-del:hover { filter: brightness(1.15); }
+    .btn-del:active { transform: translate(-2px,-2px); box-shadow: none !important; }
+
+    /* ── TAG INPUT ────────────────────────────────────────── */
+    .tag-input-wrap {
+      min-height: 48px;
+      border: 3px solid var(--black);
+      background: var(--cream);
+      padding: .2rem .3rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .3rem;
+      align-items: flex-start;
+      cursor: text;
+    }
+    .tag-input-wrap:focus-within { border-color: var(--brown); background: #fff; }
+    .tag-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: var(--brown);
+      color: var(--yellow);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      padding: .45rem .8rem;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      white-space: nowrap;
+      line-height: 1.8;
+    }
+    .tag-chip-x { cursor: pointer; opacity: .65; font-size: .7rem; margin-left: .1rem; line-height: 1; }
+    .tag-chip-x:hover { opacity: 1; }
+    .tag-text-input {
+      border: none; outline: none; background: transparent;
+      font-family: 'VT323', monospace; font-size: 1.25rem;
+      color: var(--black); min-width: 150px; flex: 1; padding: .1rem .3rem;
+    }
+    .tag-hint { font-size: 1rem; color: #aaa; margin-top: .2rem; display: block; }
+
+    /* Vibe chips on cards */
+    .vibe-chips { display: flex; flex-wrap: wrap; gap: .3rem; padding: .25rem .4rem; }
+    .vibe-chip {
+      display: inline-block;
+      background: var(--mid);
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: .55rem;
+      padding: .35rem .65rem;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      line-height: 1.8;
+    }
+
+    /* ── AUTOCOMPLETE DROPDOWN ────────────────────────────── */
+    .ac-wrap { position: relative; }
+    .ac-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: var(--paper);
+      border: 3px solid var(--black);
+      border-top: none;
+      box-shadow: 4px 4px 0 var(--black);
+      z-index: 300;
+      max-height: 210px;
+      overflow-y: auto;
+    }
+    .ac-dropdown.open { display: block; }
+    .ac-option {
+      padding: .5rem .85rem;
+      font-family: 'VT323', monospace;
+      font-size: 1.2rem;
+      cursor: pointer;
+      border-bottom: 2px solid var(--tan);
+      color: var(--black);
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .ac-option:last-child { border-bottom: none; }
+    .ac-option:hover, .ac-option.active {
+      background: var(--cream);
+      color: var(--brown);
+    }
+    .ac-option .ac-icon { font-size: 1rem; flex-shrink: 0; }
+    .ac-option .ac-label { flex: 1; }
+    .ac-option .ac-maps {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .4rem;
+      color: var(--sky);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ac-loading {
+      padding: .5rem .85rem;
+      font-family: 'VT323', monospace;
+      font-size: 1.1rem;
+      color: #aaa;
+      animation: blink steps(1) .7s infinite;
+    }
+
+    /* ── EMPTY STATE ──────────────────────────────────────── */
+    .empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 3rem 2rem;
+      border: 3px dashed var(--mid);
+    }
+    .empty .big { font-size: 4rem; display: block; margin-bottom: 1rem; }
+    .empty h3 {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .8rem;
+      color: var(--brown);
+      line-height: 2;
+      margin-bottom: 1rem;
+    }
+    .empty p { font-size: 1.3rem; color: #888; margin-bottom: 1.5rem; }
+
+    /* ── HISTORY ──────────────────────────────────────────── */
+    .archive { margin-top: 3rem; }
+    .archive-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .8rem;
+      color: var(--brown);
+      margin-bottom: 1rem;
+      line-height: 2;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .archive-title::after {
+      content: '';
+      flex: 1;
+      height: 3px;
+      background: repeating-linear-gradient(90deg, var(--black) 0, var(--black) 8px, transparent 8px, transparent 12px);
+    }
+    .archive-list { display: block; }
+
+    /* ── SUMMARY STAT BOXES ───────────────────────────────── */
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.1rem;
+    }
+    .stat-box {
+      background: var(--black);
+      border: 3px solid var(--black);
+      box-shadow: 4px 4px 0 var(--brown);
+      padding: 1rem .75rem;
+      text-align: center;
+    }
+    .stat-num {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.3rem;
+      color: var(--yellow);
+      display: block;
+      text-shadow: 3px 3px 0 rgba(0,0,0,.4);
+      margin-bottom: .5rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+    .stat-label {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .33rem;
+      color: var(--tan);
+      line-height: 2;
+      letter-spacing: 1px;
+    }
+
+    /* ── SHARED PANEL ─────────────────────────────────────── */
+    .lb-section, .timeline-section, .history-log {
+      background: var(--paper);
+      border: 3px solid var(--black);
+      box-shadow: 4px 4px 0 var(--black);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .lb-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .5rem;
+      color: var(--brown);
+      line-height: 2;
+      margin-bottom: .75rem;
+      padding-bottom: .4rem;
+      border-bottom: 2px dashed var(--tan);
+      letter-spacing: 1px;
+    }
+
+    /* ── LEADERBOARD BAR CHART ────────────────────────────── */
+    .lb-row { display: flex; align-items: center; gap: .6rem; margin-bottom: .55rem; }
+    .lb-rank { font-size: 1rem; flex-shrink: 0; width: 1.6rem; text-align: center; }
+    .lb-name {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .38rem; color: var(--brown);
+      width: 110px; flex-shrink: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 2;
+    }
+    .lb-bar-wrap { flex: 1; height: 18px; background: var(--cream); border: 2px solid var(--black); overflow: hidden; position: relative; }
+    .lb-bar {
+      height: 100%;
+      background-image: repeating-linear-gradient(
+        to right,
+        rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 4px,
+        transparent 4px, transparent 8px
+      );
+      transition: width .7s steps(10, end);
+    }
+    .lb-count { font-family: 'Press Start 2P', monospace; font-size: .34rem; color: #888; white-space: nowrap; flex-shrink: 0; }
+
+    /* ── TIMELINE ─────────────────────────────────────────── */
+    .timeline-scroll { overflow-x: auto; padding-bottom: .5rem; }
+    .timeline-row { display: flex; gap: .6rem; min-width: min-content; padding: .25rem 0; }
+    .timeline-cell { display: flex; flex-direction: column; align-items: center; gap: .25rem; min-width: 54px; }
+    .tl-label { font-family: 'Press Start 2P', monospace; font-size: .27rem; color: #999; text-align: center; line-height: 1.8; }
+    .tl-dot {
+      width: 40px; height: 40px;
+      border: 3px solid #ddd;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; color: #ddd;
+    }
+    .tl-dot.tl-visited { border-width: 3px; box-shadow: 0 0 8px; }
+    .tl-cafe { font-family: 'Press Start 2P', monospace; font-size: .25rem; color: var(--brown); text-align: center; max-width: 54px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.8; }
+    .tl-more { font-family: 'Press Start 2P', monospace; font-size: .25rem; color: var(--mid); }
+
+    /* ── VISIT LOG ────────────────────────────────────────── */
+    .log-entries { display: flex; flex-direction: column; gap: .35rem; }
+    .log-entry { display: flex; align-items: center; gap: .6rem; padding: .35rem .6rem; background: var(--cream); border: 2px solid var(--tan); }
+    .log-dot { width: 10px; height: 10px; flex-shrink: 0; border: 2px solid var(--black); }
+    .log-month { font-family: 'Press Start 2P', monospace; font-size: .34rem; color: var(--sky); flex-shrink: 0; line-height: 2; min-width: 90px; }
+    .log-name { font-family: 'Press Start 2P', monospace; font-size: .38rem; color: var(--brown); line-height: 2; flex: 1; }
+    .log-votes { font-family: 'Press Start 2P', monospace; font-size: .34rem; color: var(--yellow); flex-shrink: 0; }
+    .arc-del { background: none; border: none; color: #ccc; cursor: pointer; font-family: 'Press Start 2P', monospace; font-size: .36rem; padding: .1rem .25rem; line-height: 1; }
+    .arc-del:hover { color: var(--red); }
+
+    /* ── MODAL OVERLAY ────────────────────────────────────── */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,10,0,.75);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: var(--paper);
+      border: 4px solid var(--black);
+      box-shadow: 8px 8px 0 var(--black);
+      padding: 1.75rem;
+      max-width: 500px;
+      width: 100%;
+      position: relative;
+      transform: translateY(16px);
+      transition: transform .25s steps(4, end);
+      max-height: 92vh;
+      overflow-y: auto;
+    }
+    .overlay.open .modal { transform: translateY(0); }
+
+    /* Pixel corner accents on modal */
+    .modal::before, .modal::after {
+      content: '';
+      position: absolute;
+      width: 12px; height: 12px;
+      background: var(--yellow);
+      border: 2px solid var(--black);
+    }
+    .modal::before { top: -4px; left: -4px; }
+    .modal::after  { bottom: -4px; right: -4px; }
+
+    .modal-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .85rem;
+      color: var(--brown);
+      line-height: 2;
+      margin-bottom: 1.25rem;
+      border-bottom: 3px solid var(--black);
+      padding-bottom: .75rem;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: var(--red);
+      color: #fff;
+      border: 2px solid var(--black);
+      box-shadow: 2px 2px 0 var(--black);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      padding: .3rem .5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-close:active { transform: translate(2px,2px); box-shadow: none !important; }
+
+    /* Form */
+    .fg { margin-bottom: 1.1rem; }
+    .fg label {
+      display: block;
+      font-family: 'Press Start 2P', monospace;
+      font-size: .55rem;
+      color: var(--brown);
+      line-height: 2.5;
+    }
+    .fg input, .fg textarea {
+      width: 100%;
+      padding: .6rem .9rem;
+      border: 3px solid var(--black);
+      font-family: 'VT323', monospace;
+      font-size: 1.3rem;
+      color: var(--black);
+      background: var(--cream);
+      outline: none;
+      resize: vertical;
+    }
+    .fg input:focus, .fg textarea:focus { background: #fff; border-color: var(--brown); }
+    .fg textarea { min-height: 80px; }
+    .btn-full { width: 100%; padding: .9rem; font-size: .65rem; margin-top: .5rem; text-align: center; }
+
+    /* ── SLOT MACHINE ─────────────────────────────────────── */
+    .slot-machine {
+      background: var(--black);
+      border: 4px solid var(--black);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .slot-screen {
+      background: #100030;
+      border: 3px solid #060015;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Screen scanlines */
+    .slot-screen::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.15) 2px, rgba(0,0,0,.15) 3px);
+      pointer-events: none;
+      z-index: 3;
+    }
+    .slot-arrows {
+      position: absolute;
+      top: 50%; transform: translateY(-50%);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .75rem;
+      color: var(--yellow);
+      z-index: 2;
+    }
+    .slot-arrows.left  { left: 8px; }
+    .slot-arrows.right { right: 8px; }
+    .slot-arrows.blink { animation: blink steps(1) .6s infinite; }
+    @keyframes blink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+    #slot-display {
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(.55rem, 2vw, .85rem);
+      color: #F472B6;
+      text-align: center;
+      padding: 0 2rem;
+      line-height: 1.8;
+      text-shadow: 0 0 10px #F472B6, 0 0 20px rgba(244,114,182,.4);
+      z-index: 1;
+      word-break: break-word;
+    }
+    #slot-display.winner-flash {
+      animation: win-flash steps(1) .35s infinite, win-rainbow 1.4s steps(4) infinite;
+    }
+    @keyframes win-flash { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+    @keyframes win-rainbow {
+      0%   { color: #FBBF24; text-shadow: 0 0 14px #FBBF24; }
+      25%  { color: #F472B6; text-shadow: 0 0 14px #F472B6; }
+      50%  { color: #34D399; text-shadow: 0 0 14px #34D399; }
+      75%  { color: #818CF8; text-shadow: 0 0 14px #818CF8; }
+      100% { color: #FBBF24; text-shadow: 0 0 14px #FBBF24; }
+    }
+
+    .slot-bottom {
+      display: flex;
+      gap: .5rem;
+      margin-top: .75rem;
+    }
+    .slot-led {
+      flex: 1;
+      height: 12px;
+      background: #333;
+      border: 2px solid #000;
+    }
+    .slot-led.on { background: var(--yellow); box-shadow: 0 0 8px var(--purple); }
+
+    #slot-result {
+      font-family: 'Press Start 2P', monospace;
+      font-size: .65rem;
+      color: var(--brown);
+      text-align: center;
+      min-height: 2rem;
+      line-height: 2;
+    }
+
+    /* ── CONFETTI CANVAS ──────────────────────────────────── */
+    #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 9999; }
+
+    /* ── TOAST ────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 1.75rem; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--black);
+      color: var(--yellow);
+      font-family: 'Press Start 2P', monospace;
+      font-size: .6rem;
+      padding: .75rem 1.25rem;
+      border: 3px solid var(--yellow);
+      box-shadow: 5px 5px 0 var(--yellow);
+      z-index: 1000;
+      transition: transform .3s steps(4, end);
+      max-width: 92vw;
+      text-align: center;
+      line-height: 2;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── RESPONSIVE ───────────────────────────────────────── */
+    @media (max-width: 580px) {
+      .action-bar { flex-direction: column; align-items: stretch; }
+      .action-right { justify-content: stretch; }
+      .action-right .btn { flex: 1; }
+
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────── -->
+<header class="header">
+  <div class="header-deco">
+    <span class="pixel-bean" style="top:12%;left:3%;animation-delay:0s">☕</span>
+    <span class="pixel-bean" style="top:8%;right:5%;animation-delay:.6s;font-size:1.1rem">🫘</span>
+    <span class="pixel-bean" style="bottom:28%;left:8%;animation-delay:1.1s">🫘</span>
+    <span class="pixel-bean" style="top:15%;right:16%;animation-delay:.3s;font-size:1.1rem">☕</span>
+    <span class="pixel-bean" style="bottom:24%;right:3%;animation-delay:.9s;font-size:1.2rem">🫘</span>
+  </div>
+  <div class="header-inner">
+    <div class="h-title">☕ COFFEE CLUB ☕</div>
+    <div class="h-sub">WHERE SHALL WE CAFFEINATE?</div>
+    <div class="month-pill" id="month-pill">LOADING...</div>
+  </div>
+  <div class="steam-row" aria-hidden="true">
+    <div class="steam-col"><div class="steam-px"></div><div class="steam-px"></div><div class="steam-px"></div></div>
+    <div class="steam-col"><div class="steam-px"></div><div class="steam-px"></div><div class="steam-px"></div></div>
+    <div class="steam-col"><div class="steam-px"></div><div class="steam-px"></div><div class="steam-px"></div></div>
+  </div>
+  <div class="score-strip">
+    <div>MONTH: <span id="score-month">---</span></div>
+    <div>TOTAL VOTES: <span id="score-votes">0</span></div>
+    <div>SHOPS: <span id="score-shops">0</span></div>
+    <div id="score-leader">LEADER: <span>---</span></div>
+  </div>
+</header>
+
+<!-- ── MAIN ────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Action bar -->
+  <div class="action-bar">
+    <h2>▶ THIS MONTH'S PICKS</h2>
+    <div class="action-right">
+      <button class="btn btn-yellow btn-lg" onclick="openSuggest()">[ + SUGGEST ]</button>
+      <button class="btn btn-red btn-lg" onclick="openSpin()">[ 🎰 SPIN! ]</button>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="cards" id="cards"></div>
+
+  <!-- Team -->
+  <div class="team-section">
+    <div class="team-title">
+      👾 THE TEAM
+      <button class="btn btn-green" style="font-size:.45rem;padding:.4rem .75rem" onclick="openCreateMember()">[ + JOIN ]</button>
+    </div>
+    <div class="team-grid" id="team-grid"></div>
+  </div>
+
+  <!-- History -->
+  <div class="archive">
+    <div class="archive-title">
+      📊 CLUB SUMMARY
+      <button class="btn btn-green" style="font-size:.45rem;padding:.4rem .75rem" onclick="openHistoryModal()">[ + ADD ]</button>
+    </div>
+    <div class="archive-list" id="archive-list"></div>
+  </div>
+
+</main>
+
+<!-- ── SUGGEST MODAL ───────────────────────────────────────────────── -->
+<div class="overlay" id="suggest-modal" onclick="overlayClick(event,'suggest-modal')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSuggest()">✕ ESC</button>
+    <div class="modal-title">☕ SUGGEST A SHOP</div>
+    <form id="suggest-form" onsubmit="submitSuggestion(event)">
+      <div class="fg">
+        <label>☕ SHOP NAME *</label>
+        <input id="f-name" type="text" placeholder="e.g. The Roasted Bean" required />
+      </div>
+      <div class="fg">
+        <label>👾 YOUR NAME *</label>
+        <input id="f-by" type="text" placeholder="e.g. Alice" required />
+      </div>
+      <div class="fg">
+        <label>✨ VIBE TAGS *</label>
+        <div class="tag-input-wrap" id="vibe-tag-wrap">
+          <input type="text" id="vibe-tag-input" class="tag-text-input" placeholder="TYPE A TAG, PRESS COMMA..." autocomplete="off" />
+        </div>
+        <span class="tag-hint">e.g. great wifi , cozy , amazing pastries</span>
+      </div>
+      <div class="fg ac-wrap">
+        <label>🗺️ FIND ON GOOGLE MAPS *</label>
+        <input id="f-addr" type="text" placeholder="TYPE TO SEARCH (e.g. BERMONDSEY...)" autocomplete="off" required />
+        <div class="ac-dropdown" id="addr-dropdown"></div>
+      </div>
+      <button type="submit" class="btn btn-yellow btn-full">▶ ADD TO THE LIST</button>
+    </form>
+  </div>
+</div>
+
+<!-- ── SPIN MODAL ─────────────────────────────────────────────────── -->
+<div class="overlay" id="spin-modal" onclick="overlayClick(event,'spin-modal')">
+  <div class="modal" style="text-align:center;max-width:420px">
+    <button class="modal-close" onclick="closeSpin()">✕ ESC</button>
+    <div class="modal-title" style="text-align:left">🎰 SPIN TO DECIDE!</div>
+
+    <div class="slot-machine">
+      <div class="slot-screen">
+        <div class="slot-arrows left">◀</div>
+        <div id="slot-display">PRESS SPIN</div>
+        <div class="slot-arrows right">▶</div>
+      </div>
+      <div class="slot-bottom">
+        <div class="slot-led" id="led0"></div>
+        <div class="slot-led" id="led1"></div>
+        <div class="slot-led" id="led2"></div>
+        <div class="slot-led" id="led3"></div>
+        <div class="slot-led" id="led4"></div>
+        <div class="slot-led" id="led5"></div>
+        <div class="slot-led" id="led6"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-red btn-lg" id="spin-btn" onclick="doSpin()" style="margin-bottom:1rem">
+      🎰 SPIN!
+    </button>
+    <div id="slot-result"></div>
+  </div>
+</div>
+
+<!-- ── HISTORY MODAL ───────────────────────────────────────────────── -->
+<div class="overlay" id="history-modal" onclick="overlayClick(event,'history-modal')">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" onclick="closeHistoryModal()">✕ ESC</button>
+    <div class="modal-title">📜 ADD TO HISTORY</div>
+    <form id="history-form" onsubmit="submitHistory(event)">
+      <div class="fg">
+        <label>☕ CAFE NAME *</label>
+        <input id="h-name" type="text" placeholder="e.g. The Roasted Bean" required />
+      </div>
+      <div class="fg">
+        <label>📅 MONTH VISITED *</label>
+        <input id="h-month" type="month" required />
+      </div>
+      <div class="fg">
+        <label>🏆 VOTES (OPTIONAL)</label>
+        <input id="h-votes" type="number" min="0" placeholder="e.g. 5" />
+      </div>
+      <button type="submit" class="btn btn-yellow btn-full">▶ SAVE TO HISTORY</button>
+    </form>
+  </div>
+</div>
+
+<!-- Pick Member Modal -->
+<div class="overlay" id="pick-member-modal">
+  <div class="modal" style="max-width:420px;text-align:center">
+    <button class="modal-close" onclick="closePickMember()">✕ ESC</button>
+    <div class="modal-title">👾 WHO ARE YOU?</div>
+    <p style="font-family:'VT323',monospace;font-size:1.3rem;color:#888;margin-bottom:.75rem">Pick your character to cast your vote!</p>
+    <div class="pick-member-grid" id="pick-member-grid"></div>
+    <div style="margin-top:.75rem">
+      <button class="btn btn-green" style="font-size:.45rem;padding:.4rem .75rem" onclick="goCreateMember()">[ + CREATE NEW CHARACTER ]</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Member Modal -->
+<div class="overlay" id="create-member-modal">
+  <div class="modal" style="max-width:480px">
+    <button class="modal-close" onclick="closeCreateMember()">✕ ESC</button>
+    <div class="modal-title">✏️ CREATE CHARACTER</div>
+    <div class="av-builder">
+      <div class="av-options">
+        <div class="av-section">
+          <div class="av-label">BODY</div>
+          <div class="av-row" id="av-gender-btns"></div>
+        </div>
+        <div class="av-section">
+          <div class="av-label">SKIN TONE</div>
+          <div class="av-row" id="av-skin-btns"></div>
+        </div>
+        <div class="av-section">
+          <div class="av-label">HAIR</div>
+          <div class="av-row" id="av-hair-btns"></div>
+        </div>
+        <div class="av-section">
+          <div class="av-label">CLOTHES</div>
+          <div class="av-row" id="av-clothes-btns"></div>
+        </div>
+        <div class="av-section" style="margin-top:.25rem">
+          <div class="av-label">YOUR NAME</div>
+          <input id="av-name-input" type="text" placeholder="e.g. Alice" maxlength="20" autocomplete="off" />
+        </div>
+      </div>
+      <div class="av-preview-wrap">
+        <canvas id="av-preview" style="image-rendering:pixelated"></canvas>
+      </div>
+    </div>
+    <button class="btn btn-brown btn-full" onclick="submitCreateMember()">▶ JOIN THE CLUB!</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:            "AIzaSyCgVIo7M29sn2JBzgNWNYmyxxxnOKgfOrw",
+  authDomain:        "mb-coffee-club.firebaseapp.com",
+  databaseURL:       "https://mb-coffee-club-default-rtdb.firebaseio.com",
+  projectId:         "mb-coffee-club",
+  storageBucket:     "mb-coffee-club.firebasestorage.app",
+  messagingSenderId: "485837596646",
+  appId:             "1:485837596646:web:843a3c079e0e958bdc5827",
+});
+const DB = firebase.database().ref('coffeeclub');
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+const SK = { myVote: 'cclub_myVote', myMemberId: 'cclub_myMemberId' };
+
+let S = {
+  suggestions: [],
+  votes: {},
+  voters: {},      // { shopId: ['Alice', 'Marcus', ...] }
+  team: [],
+  myVote: null,
+  archive: [],
+  userLat: null,
+  userLng: null,
+  distances: {},
+};
+
+let vibeTags = [];
+
+function autoArchiveCheck(storedMonth) {
+  const now      = new Date();
+  const nowMonth = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+
+  if (!storedMonth) {
+    DB.update({ activeMonth: nowMonth });
+    return;
+  }
+
+  if (storedMonth === nowMonth) return; // still the same month, nothing to do
+
+  // ── Month has rolled over ──────────────────────────────
+  const lid = leader();
+  if (lid) {
+    const winner = S.suggestions.find(s => s.id === lid);
+    if (winner) {
+      S.archive.unshift({
+        id:       'arc_auto_' + Date.now(),
+        shopName: winner.name,
+        month:    storedMonth,
+        votes:    S.votes[lid] || 0,
+        addedAt:  Date.now(),
+        auto:     true,
+      });
+      // Show winner announcement after render
+      setTimeout(() => {
+        toast('🎉 ' + winner.name.toUpperCase() + ' WON ' + storedMonth + '!');
+        confetti();
+      }, 600);
+    }
+  }
+
+  // Reset for the new month
+  S.suggestions = [];
+  S.votes       = {};
+  S.voters      = {};
+  S.myVote      = null;
+  localStorage.removeItem(SK.myVote);
+  DB.update({
+    suggestions: JSON.stringify([]),
+    votes:       JSON.stringify({}),
+    voters:      JSON.stringify({}),
+    archive:     JSON.stringify(S.archive),
+    activeMonth: nowMonth,
+  });
+}
+
+function saveState() {
+  DB.update({
+    suggestions: JSON.stringify(S.suggestions),
+    votes:       JSON.stringify(S.votes),
+    voters:      JSON.stringify(S.voters),
+    archive:     JSON.stringify(S.archive),
+    team:        JSON.stringify(S.team),
+  });
+  if (S.myVote) localStorage.setItem(SK.myVote, S.myVote);
+  else          localStorage.removeItem(SK.myVote);
+}
+
+// ════════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════════
+let firstLoad = true;
+
+function init() {
+  const now = new Date();
+  const monthStr = now.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+  document.getElementById('month-pill').textContent = monthStr;
+  document.getElementById('score-month').textContent = monthStr;
+
+  S.myVote    = localStorage.getItem(SK.myVote)     || null;
+  S.myMember  = localStorage.getItem(SK.myMemberId) || null;
+
+  // Real-time Firebase listener — all teammates see live updates
+  DB.on('value', snapshot => {
+    const data = snapshot.val() || {};
+
+    S.suggestions = JSON.parse(data.suggestions || '[]');
+    S.votes       = JSON.parse(data.votes       || '{}');
+    S.voters      = JSON.parse(data.voters      || '{}');
+    S.archive     = JSON.parse(data.archive     || '[]');
+    S.team        = JSON.parse(data.team        || '[]');
+
+    // Recompute distances if we already have user location
+    if (S.userLat !== null) {
+      S.suggestions.forEach(s => {
+        if (s.lat) S.distances[s.id] = haversine(S.userLat, S.userLng, s.lat, s.lng);
+      });
+    }
+
+    if (firstLoad) {
+      firstLoad = false;
+      autoArchiveCheck(data.activeMonth || null);
+
+      // Seed demo data only if database is completely empty
+      if (!S.suggestions.length && !data.seeded) {
+        S.suggestions = [
+          { id:'demo1', name:'The Roasted Bean', suggestedBy:'Alice',
+            vibe:'Super cozy, perfect for deep-work sessions ✨ great wifi',
+            address:'Shoreditch, London, UK', lat:51.5224, lng:-0.0733, createdAt: Date.now()-7200000 },
+          { id:'demo2', name:'Brew & Bloom', suggestedBy:'Marcus',
+            vibe:'Exposed brick, incredible oat lattes & the best scones in town 🌸',
+            address:'Bermondsey, London, UK', lat:51.4990, lng:-0.0800, createdAt: Date.now()-3600000 },
+          { id:'demo3', name:'Café Nomad', suggestedBy:'Priya',
+            vibe:'Loud but fun — always buzzing, great vibe for a Friday chat ☀️',
+            address:'Soho, London, UK', lat:51.5136, lng:-0.1358, createdAt: Date.now()-1800000 },
+        ];
+        S.votes = { demo1: 3, demo2: 1, demo3: 0 };
+        DB.update({ suggestions: JSON.stringify(S.suggestions), votes: JSON.stringify(S.votes), seeded: true });
+      }
+    }
+
+    render();
+  });
+
+  // Wire autocomplete on address input
+  setupAutocomplete('f-addr', 'addr-dropdown');
+  setupTagInput();
+
+  // Silently get browser location for distance display
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => applyUserLocation(pos.coords.latitude, pos.coords.longitude),
+      () => {}
+    );
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeSuggest(); closeSpin(); closePickMember(); closeCreateMember(); }
+  });
+
+  // Animate LEDs
+  ledIdle();
+}
+
+// ════════════════════════════════════════════════════════════
+//  TAG INPUT
+// ════════════════════════════════════════════════════════════
+function setupTagInput() {
+  const wrap  = document.getElementById('vibe-tag-wrap');
+  const input = document.getElementById('vibe-tag-input');
+  wrap.addEventListener('click', () => input.focus());
+  input.addEventListener('keydown', e => {
+    if (e.key === ',' || e.key === 'Enter') {
+      e.preventDefault();
+      addVibeTag(input.value);
+    } else if (e.key === 'Backspace' && input.value === '') {
+      e.preventDefault();
+      removeVibeTag(vibeTags.length - 1);
+    }
+  });
+  input.addEventListener('input', () => {
+    if (input.value.includes(',')) {
+      input.value.split(',').slice(0, -1).forEach(p => addVibeTag(p));
+      input.value = input.value.split(',').pop();
+    }
+  });
+}
+
+function addVibeTag(text) {
+  const tag = text.trim().slice(0, 28);
+  if (!tag || vibeTags.includes(tag)) { document.getElementById('vibe-tag-input').value = ''; return; }
+  vibeTags.push(tag);
+  document.getElementById('vibe-tag-input').value = '';
+  renderVibeTags();
+}
+
+function removeVibeTag(idx) {
+  if (idx < 0 || idx >= vibeTags.length) return;
+  vibeTags.splice(idx, 1);
+  renderVibeTags();
+}
+
+function renderVibeTags() {
+  const wrap  = document.getElementById('vibe-tag-wrap');
+  const input = document.getElementById('vibe-tag-input');
+  wrap.querySelectorAll('.tag-chip').forEach(el => el.remove());
+  vibeTags.forEach((tag, i) => {
+    const chip = document.createElement('span');
+    chip.className = 'tag-chip';
+    chip.innerHTML = `${esc(tag)}<span class="tag-chip-x" onclick="removeVibeTag(${i})">✕</span>`;
+    wrap.insertBefore(chip, input);
+  });
+  input.placeholder = vibeTags.length ? '' : 'TYPE A TAG, PRESS COMMA...';
+}
+
+function resetVibeInput() {
+  vibeTags = [];
+  renderVibeTags();
+  document.getElementById('vibe-tag-input').value = '';
+}
+
+// ════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE  (Photon/Komoot — free, no API key)
+// ════════════════════════════════════════════════════════════
+let acTimers = {};
+let acPicked  = {};   // { inputId: {lat, lng, label, mapsUrl} }
+
+function setupAutocomplete(inputId, dropdownId) {
+  const input = document.getElementById(inputId);
+  const dd    = document.getElementById(dropdownId);
+
+  input.addEventListener('input', () => {
+    delete acPicked[inputId];
+    clearTimeout(acTimers[inputId]);
+    const q = input.value.trim();
+    if (q.length < 2 || q.startsWith('http')) { closeDD(dd); return; }
+    dd.innerHTML = '<div class="ac-loading">SEARCHING...</div>';
+    dd.classList.add('open');
+    acTimers[inputId] = setTimeout(() => fetchAC(q, dd, inputId), 250);
+  });
+
+  input.addEventListener('keydown', e => {
+    if (!dd.classList.contains('open')) return;
+    const opts = dd.querySelectorAll('.ac-option');
+    let idx = [...opts].findIndex(o => o.classList.contains('active'));
+    if (e.key === 'ArrowDown') { e.preventDefault(); setActive(opts, Math.min(idx+1, opts.length-1)); }
+    else if (e.key === 'ArrowUp')  { e.preventDefault(); setActive(opts, Math.max(idx-1, 0)); }
+    else if (e.key === 'Enter' && idx >= 0) { e.preventDefault(); opts[idx].click(); }
+    else if (e.key === 'Escape') closeDD(dd);
+  });
+
+  // Event delegation — one listener on the dropdown
+  dd.addEventListener('click', e => {
+    const opt = e.target.closest('.ac-option');
+    if (!opt) return;
+    pickAC(inputId, +opt.dataset.lat, +opt.dataset.lng, opt.dataset.label, opt.dataset.maps);
+  });
+
+  document.addEventListener('click', e => {
+    if (!dd.contains(e.target) && e.target !== input) closeDD(dd);
+  });
+}
+
+function setActive(opts, idx) {
+  opts.forEach(o => o.classList.remove('active'));
+  if (opts[idx]) opts[idx].classList.add('active');
+}
+
+async function fetchAC(q, dd, inputId) {
+  try {
+    const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6`);
+    const data = await r.json();
+    const features = data.features || [];
+    if (!features.length) { dd.innerHTML = '<div class="ac-loading">NO RESULTS</div>'; return; }
+
+    dd.innerHTML = features.map(f => {
+      const p = f.properties;
+      const parts = [p.name, p.housenumber ? p.housenumber + ' ' + p.street : p.street, p.city || p.town || p.village, p.country].filter(Boolean);
+      const label = parts.join(', ');
+      const [lng, lat] = f.geometry.coordinates;
+      const mapsUrl = 'https://www.google.com/maps/search/' + encodeURIComponent(label);
+      // Use data-* attributes — no inline JS string escaping issues
+      const el = document.createElement('div');
+      el.className = 'ac-option';
+      el.dataset.lat   = lat;
+      el.dataset.lng   = lng;
+      el.dataset.label = label;
+      el.dataset.maps  = mapsUrl;
+      el.innerHTML = `<span class="ac-icon">📍</span><span class="ac-label">${esc(label)}</span><span class="ac-maps">↗ MAPS</span>`;
+      return el.outerHTML;
+    }).join('');
+  } catch (_) {
+    dd.innerHTML = '<div class="ac-loading">❌ ERROR</div>';
+  }
+}
+
+function pickAC(inputId, lat, lng, label, mapsUrl) {
+  acPicked[inputId] = { lat, lng, label, mapsUrl };
+  document.getElementById(inputId).value = label;
+  closeDD(document.getElementById('addr-dropdown'));
+}
+
+function closeDD(dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
+
+// ════════════════════════════════════════════════════════════
+//  DISTANCE
+// ════════════════════════════════════════════════════════════
+function haversine(la1, lo1, la2, lo2) {
+  const R = 3958.8, dLa = (la2-la1)*Math.PI/180, dLo = (lo2-lo1)*Math.PI/180;
+  const a = Math.sin(dLa/2)**2 + Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function applyUserLocation(lat, lng) {
+  S.userLat = lat; S.userLng = lng;
+  S.suggestions.forEach(s => {
+    if (s.lat) S.distances[s.id] = haversine(lat, lng, s.lat, s.lng);
+  });
+  render();
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ════════════════════════════════════════════════════════════
+//  SUGGESTIONS
+// ════════════════════════════════════════════════════════════
+async function submitSuggestion(e) {
+  e.preventDefault();
+  const name = document.getElementById('f-name').value.trim();
+  const by   = document.getElementById('f-by').value.trim();
+  const addr = document.getElementById('f-addr').value.trim();
+  // commit any pending tag text
+  const pendingTag = document.getElementById('vibe-tag-input').value.trim();
+  if (pendingTag) addVibeTag(pendingTag);
+  const vibe = vibeTags.join(', ');
+  if (!name || !by || !addr) return;
+  if (!vibe) { toast('>> ADD AT LEAST ONE VIBE TAG!'); return; }
+
+  const id   = 'shop_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  const pick = acPicked['f-addr'];
+  const s    = {
+    id, name, suggestedBy: by, vibe,
+    address: pick ? pick.label : addr,
+    mapsUrl: pick ? pick.mapsUrl : (addr.startsWith('http') ? addr : `https://www.google.com/maps/search/${encodeURIComponent(addr)}`),
+    lat: pick?.lat, lng: pick?.lng,
+    createdAt: Date.now()
+  };
+
+  // Fallback geocode if no autocomplete pick
+  if (!s.lat && !addr.startsWith('http')) {
+    try {
+      const r = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(addr)}&limit=1`);
+      const data = await r.json();
+      const f = data.features?.[0];
+      if (f) { [s.lng, s.lat] = f.geometry.coordinates; }
+    } catch (_) {}
+  }
+  if (s.lat && S.userLat !== null)
+    S.distances[id] = haversine(S.userLat, S.userLng, s.lat, s.lng);
+
+  S.suggestions.push(s);
+  S.votes[id] = 0;
+  saveState();
+  delete acPicked['f-addr'];
+  closeSuggest();
+  document.getElementById('suggest-form').reset();
+  resetVibeInput();
+  render();
+  toast('>> ' + name.toUpperCase() + ' ADDED! ☕');
+}
+
+// ════════════════════════════════════════════════════════════
+//  PIXEL AVATAR SYSTEM
+// ════════════════════════════════════════════════════════════
+const AV_W = 12, AV_H = 20;
+const AV_SKINS   = ['#FDDBB4','#F5C18A','#D4956A','#A0674A','#6B3B2A'];
+const AV_HAIR_C  = ['#2D1B69','#8B4513','#E8C84B','#EC4899','#6B21A8'];
+const AV_CLOTH_C = ['#7C3AED','#EC4899','#34D399','#F97316','#818CF8'];
+const AV_HAIR_NAMES   = ['SHORT','MEDIUM','LONG','SPIKY','CURLY'];
+const AV_CLOTH_NAMES  = ['PURPLE','PINK','MINT','ORANGE','BLUE'];
+
+const AV_BASE = [
+  ['............','............','....OOOO....','..OSSSSSSO..','..OSeSSeSO..','..OSSSSSSO..','..OSSSrSSO..','..OSSSSSSO..','....SSSS....', '.OCCCCCCCO..', '.OCCCCCCCO..', '.OCCCCCCCO..', '.OCCCCCCCO..','...OCCCCO...','..OPPPPPO...','.OPPO..PPO..','.OPPO..PPO..','.OEEO..EEO..','..OOO..OOO..','............'],
+  ['............','............','....OOOO....','..OSSSSSSO..','..OSeSSeSO..','..OSSSSSSO..','..OSSSrSSO..','..OSSSSSSO..','....SSSS....','..OCCCCCCO..','..OCCCCCCO..','..OCCCCCCO..','..OCCCCCCO..','...OCCCCO...','..OCCCCCCCO.','.OCCCCCCCCO.','.OCCCCCCCCO.','....SS.SS...','....EE.EE...','....OO.OO...'],
+];
+const AV_HAIR = [
+  ['............','....hHHh....','..HHHHHHHH..','..H......H..','..H......H..','..H......H..','..H......H..','..H......H..','............','............','............','............','............','............','............','............','............','............','............','............'],
+  ['..hHHHHHh...','.HHHHHHHHHH.','..HHHHHHHH..','..H......H..','..H......H..','..H......H..','..H......H..','..H......H..','..H......H..','............','............','............','............','............','............','............','............','............','............','............'],
+  ['....hHHh....','..HHHhHHHH..','..HHHHHHHH..','.HH......HH.','.HH......HH.','.HH......HH.','.HH......HH.','.HH......HH.','.HH......HH.','.H.......H..','............','............','............','............','............','............','............','............','............','............'],
+  ['..H.HH.H....','..HHHHHHHH..','..HHhHhHHH..','..H......H..','..H......H..','..H......H..','............','............','............','............','............','............','............','............','............','............','............','............','............','............'],
+  ['..HHhHHhHH..','.HHHHHHHHHH.','.HHHhHhHHHH.','.HH......HH.','.HH......HH.','.H.......H..','............','............','............','............','............','............','............','............','............','............','............','............','............','............'],
+];
+const AV_CLOTH_PATS = [
+  ['............','............','............','............','............','............','............','............','............','............','............','...c...c....','............','............','............','............','............','............','............','............'],
+  ['............','............','............','............','............','............','............','............','............','............','...cccccc...','............','...cccccc...','............','............','............','............','............','............','............'],
+  ['............','............','............','............','............','............','............','............','............','...c....c...','...c....c...','...c....c...','...c....c...','............','............','............','............','............','............','............'],
+  ['............','............','............','............','............','............','............','............','............','............','............','............','....cc......','............','............','............','............','............','............','............'],
+  ['............','............','............','............','............','............','............','............','............','...c.c.c....','....c.c.c...','...c.c.c....','....c.c.c...','............','............','............','............','............','............','............'],
+];
+
+function avDarken(hex, f=0.65) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgb(${Math.round(((n>>16)&255)*f)},${Math.round(((n>>8)&255)*f)},${Math.round((n&255)*f)})`;
+}
+function avColor(ch, cfg) {
+  const sk = AV_SKINS[cfg.skin||0], hc = AV_HAIR_C[cfg.hair||0], cc = AV_CLOTH_C[cfg.clothes||0];
+  switch(ch) {
+    case 'O': return '#2D1B69'; case 'S': return sk;
+    case 'H': return hc;        case 'h': return avDarken(hc);
+    case 'C': return cc;        case 'c': return avDarken(cc);
+    case 'P': return '#4B4870'; case 'E': return '#1A0F3C';
+    case 'e': return '#111827'; case 'r': return '#E05080';
+    default: return null;
+  }
+}
+function drawAvatar(canvas, cfg, px=5) {
+  canvas.width = AV_W * px; canvas.height = AV_H * px;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const base = AV_BASE[cfg.gender||0], hair = AV_HAIR[cfg.hair||0], cpat = AV_CLOTH_PATS[cfg.clothes||0];
+  for (let row = 0; row < AV_H; row++) {
+    for (let col = 0; col < AV_W; col++) {
+      let color = null;
+      const bch = (base[row]||'')[col]; if (bch && bch !== '.') color = avColor(bch, cfg);
+      const hch = (hair[row]||'')[col]; if (hch && hch !== '.') color = avColor(hch, cfg);
+      const pch = (cpat[row]||'')[col]; if (pch && pch !== '.') color = avColor(pch, cfg);
+      if (color) { ctx.fillStyle = color; ctx.fillRect(col*px, row*px, px, px); }
+    }
+  }
+}
+const avCache = new Map();
+function getMemberAvURL(member, px=3) {
+  const k = `${member.id}_${member.gender}_${member.skin}_${member.hair}_${member.clothes}_${px}`;
+  if (!avCache.has(k)) {
+    const c = document.createElement('canvas');
+    drawAvatar(c, member, px);
+    avCache.set(k, c.toDataURL());
+  }
+  return avCache.get(k);
+}
+
+// ════════════════════════════════════════════════════════════
+//  AVATAR BUILDER STATE
+// ════════════════════════════════════════════════════════════
+let avCfg = { gender:0, skin:2, hair:0, clothes:0 };
+
+function updateAvPreview() {
+  const c = document.getElementById('av-preview');
+  if (c) drawAvatar(c, avCfg, 8);
+}
+function setAvOpt(btn, prop, val) {
+  avCfg[prop] = val;
+  btn.closest('.av-row').querySelectorAll('.av-opt').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  updateAvPreview();
+}
+function buildAvBuilder() {
+  // Gender
+  document.getElementById('av-gender-btns').innerHTML =
+    ['♂ BOY','♀ GIRL'].map((l,i) =>
+      `<button type="button" class="av-opt${avCfg.gender===i?' selected':''}" onclick="setAvOpt(this,'gender',${i})">${l}</button>`
+    ).join('');
+  // Skin
+  document.getElementById('av-skin-btns').innerHTML =
+    AV_SKINS.map((c,i) =>
+      `<button type="button" class="av-opt av-swatch${avCfg.skin===i?' selected':''}" style="background:${c}" onclick="setAvOpt(this,'skin',${i})"></button>`
+    ).join('');
+  // Hair
+  document.getElementById('av-hair-btns').innerHTML =
+    AV_HAIR_NAMES.map((l,i) =>
+      `<button type="button" class="av-opt av-hair-opt${avCfg.hair===i?' selected':''}" style="--hc:${AV_HAIR_C[i]}" onclick="setAvOpt(this,'hair',${i})">${l}</button>`
+    ).join('');
+  // Clothes
+  document.getElementById('av-clothes-btns').innerHTML =
+    AV_CLOTH_NAMES.map((l,i) =>
+      `<button type="button" class="av-opt av-cloth-opt${avCfg.clothes===i?' selected':''}" style="background:${AV_CLOTH_C[i]}" onclick="setAvOpt(this,'clothes',${i})">${l}</button>`
+    ).join('');
+  updateAvPreview();
+}
+
+// ════════════════════════════════════════════════════════════
+//  TEAM
+// ════════════════════════════════════════════════════════════
+function renderTeam() {
+  const grid = document.getElementById('team-grid');
+  if (!grid) return;
+  if (!S.team.length) {
+    grid.innerHTML = `<div class="team-empty">NO MEMBERS YET — HIT [ + JOIN ] TO CREATE YOUR CHARACTER!</div>`;
+    return;
+  }
+  grid.innerHTML = S.team.map(m => {
+    const isMine = S.myMember === m.id;
+    return `
+    <div class="member-card${isMine?' mine':''}">
+      ${isMine ? '<div class="mine-tag">YOU</div>' : ''}
+      <img src="${getMemberAvURL(m, 4)}" width="48" height="80" style="image-rendering:pixelated;display:block;margin:0 auto .4rem" />
+      <div class="member-name">${esc(m.name)}</div>
+      <button class="member-del" onclick="removeTeamMember('${m.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function openCreateMember() {
+  avCfg = { gender:0, skin:2, hair:0, clothes:0 };
+  document.getElementById('av-name-input').value = '';
+  buildAvBuilder();
+  document.getElementById('create-member-modal').classList.add('open');
+  setTimeout(() => document.getElementById('av-name-input').focus(), 200);
+}
+function closeCreateMember() {
+  document.getElementById('create-member-modal').classList.remove('open');
+}
+function submitCreateMember() {
+  const name = document.getElementById('av-name-input').value.trim();
+  if (!name) { document.getElementById('av-name-input').focus(); return; }
+  const member = { id: 'member_' + Date.now(), name, ...avCfg, createdAt: Date.now() };
+  S.team.push(member);
+  saveState();
+  closeCreateMember();
+  // Auto-select as current user
+  S.myMember = member.id;
+  localStorage.setItem(SK.myMemberId, member.id);
+  render();
+  toast('>> ' + name.toUpperCase() + ' JOINED THE CLUB! 👾');
+  // Resume pending vote if any
+  if (pendingVoteId) { const id = pendingVoteId; pendingVoteId = null; castVoteAsMember(id); }
+}
+function removeTeamMember(id) {
+  S.team = S.team.filter(m => m.id !== id);
+  // Remove their votes
+  Object.keys(S.voters).forEach(shopId => {
+    S.voters[shopId] = (S.voters[shopId] || []).filter(mid => mid !== id);
+  });
+  if (S.myMember === id) {
+    S.myMember = null;
+    localStorage.removeItem(SK.myMemberId);
+  }
+  if (S.myVote && S.voters[S.myVote] !== undefined) {
+    // Re-check if myVote still valid
+  }
+  saveState();
+  render();
+  toast('>> MEMBER REMOVED!');
+}
+
+// ════════════════════════════════════════════════════════════
+//  VOTING
+// ════════════════════════════════════════════════════════════
+let pendingVoteId = null;
+
+function vote(id) {
+  // Verify myMember still exists in team
+  if (S.myMember && !S.team.find(m => m.id === S.myMember)) {
+    S.myMember = null;
+    localStorage.removeItem(SK.myMemberId);
+  }
+  if (!S.myMember) {
+    pendingVoteId = id;
+    openPickMember();
+    return;
+  }
+  castVoteAsMember(id);
+}
+
+function openPickMember() {
+  const grid = document.getElementById('pick-member-grid');
+  if (!S.team.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:1rem;font-family:'VT323',monospace;font-size:1.2rem;color:#888">NO MEMBERS YET!<br>CREATE YOUR CHARACTER IN THE TEAM SECTION.</div>`;
+  } else {
+    grid.innerHTML = S.team.map(m =>
+      `<button class="pick-member-card" onclick="pickMember('${m.id}')">
+        <img src="${getMemberAvURL(m, 4)}" width="48" height="80" style="image-rendering:pixelated;display:block;margin:0 auto .3rem" />
+        <div class="pick-name">${esc(m.name)}</div>
+      </button>`
+    ).join('');
+  }
+  document.getElementById('pick-member-modal').classList.add('open');
+}
+function closePickMember() {
+  document.getElementById('pick-member-modal').classList.remove('open');
+}
+function pickMember(memberId) {
+  S.myMember = memberId;
+  localStorage.setItem(SK.myMemberId, memberId);
+  closePickMember();
+  if (pendingVoteId) { const id = pendingVoteId; pendingVoteId = null; castVoteAsMember(id); }
+}
+function goCreateMember() {
+  closePickMember();
+  openCreateMember();
+}
+
+function castVoteAsMember(shopId) {
+  const mid  = S.myMember;
+  const prev = leader();
+
+  if (S.myVote === shopId) {
+    S.votes[shopId]  = Math.max(0, (S.votes[shopId] || 0) - 1);
+    S.voters[shopId] = (S.voters[shopId] || []).filter(id => id !== mid);
+    S.myVote = null;
+  } else {
+    if (S.myVote) {
+      if ((S.votes[S.myVote] || 0) > 0) S.votes[S.myVote]--;
+      S.voters[S.myVote] = (S.voters[S.myVote] || []).filter(id => id !== mid);
+    }
+    S.votes[shopId]  = (S.votes[shopId] || 0) + 1;
+    S.voters[shopId] = [...new Set([...(S.voters[shopId] || []), mid])];
+    S.myVote = shopId;
+  }
+
+  saveState();
+  const nxt = leader();
+  render();
+
+  const card = document.querySelector(`[data-id="${shopId}"]`);
+  if (card) { card.style.transform = 'translate(-3px,-3px)'; setTimeout(() => card.style.transform = '', 120); }
+
+  if (nxt && nxt !== prev) {
+    confetti();
+    const nm = S.suggestions.find(s => s.id === nxt)?.name;
+    toast('👑 NEW LEADER: ' + (nm||'???').toUpperCase() + '!');
+  }
+}
+
+function removeShop(id) {
+  S.suggestions = S.suggestions.filter(s => s.id !== id);
+  delete S.votes[id];
+  delete S.distances[id];
+  if (S.myVote === id) S.myVote = null;
+  saveState();
+  render();
+  toast('>> SHOP REMOVED!');
+}
+
+function leader() {
+  let max = 0, lid = null;
+  S.suggestions.forEach(s => { const v = S.votes[s.id]||0; if (v > max) { max = v; lid = s.id; } });
+  return max === 0 ? null : lid;
+}
+function maxVotes() {
+  return Math.max(...S.suggestions.map(s => S.votes[s.id]||0), 1);
+}
+function totalVotes() {
+  return S.suggestions.reduce((acc, s) => acc + (S.votes[s.id]||0), 0);
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════════
+function render() {
+  renderCards();
+  renderArchive();
+  renderScores();
+  renderTeam();
+}
+
+function renderScores() {
+  document.getElementById('score-votes').textContent = totalVotes();
+  document.getElementById('score-shops').textContent = S.suggestions.length;
+  const lid = leader();
+  const lname = lid ? S.suggestions.find(s => s.id === lid)?.name : null;
+  document.getElementById('score-leader').innerHTML =
+    'LEADER: <span>' + (lname ? lname.toUpperCase() : '---') + '</span>';
+}
+
+function renderCards() {
+  const grid = document.getElementById('cards');
+  if (!S.suggestions.length) {
+    grid.innerHTML = `
+      <div class="empty">
+        <span class="big">☕</span>
+        <h3>NO COFFEE SHOPS YET!</h3>
+        <p>Be the first to suggest somewhere for the team.</p>
+        <button class="btn btn-yellow btn-lg" onclick="openSuggest()">[ + SUGGEST A SHOP ]</button>
+      </div>`;
+    return;
+  }
+
+  const sorted = [...S.suggestions].sort((a,b) => (S.votes[b.id]||0)-(S.votes[a.id]||0));
+  const lid = leader(), mv = maxVotes();
+  grid.innerHTML = sorted.map(s => cardHtml(s, lid, mv)).join('');
+}
+
+function cardHtml(s, lid, mv) {
+  const votes  = S.votes[s.id] || 0;
+  const isLead = s.id === lid;
+  const isMine = S.myVote === s.id;
+  const fill   = mv > 0 ? Math.round(votes / mv * 100) : 0;
+  const dist   = S.distances[s.id];
+
+  const mapsUrl  = s.mapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(s.address)}`;
+  const addrHtml = `${esc(s.address)} <a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.95rem;opacity:.8;white-space:nowrap">↗ MAPS</a>`;
+
+  const distHtml = dist !== undefined
+    ? `<span class="dist-tag">🚶 ${dist < 0.1 ? Math.round(dist*5280)+'FT' : dist.toFixed(1)+'MI'} AWAY</span>`
+    : '';
+
+  const cups = votes > 0 ? '☕'.repeat(Math.min(votes, 7)) + (votes > 7 ? ` +${votes-7}` : '') : 'NO VOTES YET';
+  const uid  = s.id.replace(/[^a-z0-9]/gi, '');
+
+  return `
+  <div class="card ${isLead?'winner':''}" data-id="${s.id}">
+    ${isLead ? `
+      <div class="winner-banner">
+        <span><span class="winner-star">★</span> CURRENT WINNER <span class="winner-star">★</span></span>
+        <span>HIGH SCORE!</span>
+      </div>` : ''}
+    ${isMine ? '<div class="my-vote-tag">✓ MY VOTE</div>' : ''}
+    <button class="btn-del" onclick="removeShop('${s.id}')">✕ DEL</button>
+
+    <div class="card-name">${esc(s.name)}</div>
+    <div class="card-by">[ BY: <strong>${esc(s.suggestedBy)}</strong> ]</div>
+
+    <div class="card-vibe"><div class="vibe-chips">${s.vibe.split(',').map(t=>t.trim()).filter(Boolean).map(t=>`<span class="vibe-chip">${esc(t)}</span>`).join('')}</div></div>
+
+    <div class="card-addr">📍 ${addrHtml}</div>
+    ${distHtml}
+
+    <div class="vote-row">
+      <div class="vote-info">
+        <div class="vote-count">${votes} VOTE${votes!==1?'S':''}</div>
+        <div class="vote-cups">${cups}</div>
+        <div class="vote-bar"><div class="vote-bar-fill" style="width:${fill}%"></div></div>
+        ${(S.voters[s.id]||[]).length ? `<div class="voter-names">${(S.voters[s.id]||[]).map(mid => { const m = S.team.find(t => t.id === mid); return m ? `<span class="voter-chip"><span class="voter-av" style="display:inline-block;width:18px;height:30px;overflow:hidden;vertical-align:middle;image-rendering:pixelated;background:url(${getMemberAvURL(m,3)}) no-repeat top center/18px 30px"></span> ${esc(m.name)}</span>` : ''; }).filter(Boolean).join('')}</div>` : ''}
+      </div>
+      <button class="btn btn-vote ${isMine?'btn-green':'btn-brown'}"
+              onclick="vote('${s.id}')">
+        ${isMine ? '✓ VOTED' : '☕ VOTE'}
+      </button>
+    </div>
+  </div>`;
+}
+
+function renderArchive() {
+  const el = document.getElementById('archive-list');
+  if (!S.archive.length) {
+    el.innerHTML = `<div style="text-align:center;padding:2rem;border:3px dashed var(--mid)">
+      <div style="font-size:3rem;margin-bottom:.75rem">📊</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:.6rem;color:var(--brown);line-height:2;margin-bottom:.5rem">NO VISITS YET!</div>
+      <div style="font-size:1.2rem;color:#888">Hit [ + ADD ] to log your first coffee club outing.</div>
+    </div>`;
+    return;
+  }
+
+  // ── Compute stats ──────────────────────────────────────
+  const COLORS = ['#7C3AED','#EC4899','#818CF8','#F97316','#34D399','#F472B6','#FBBF24'];
+  const MONTH_NAMES = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+
+  function parseMonth(str) {
+    const parts = str.split(' ');
+    return new Date(parseInt(parts[1]), MONTH_NAMES.indexOf(parts[0]), 1);
+  }
+
+  const cafeCounts = {}, cafeVotes = {};
+  S.archive.forEach(a => {
+    cafeCounts[a.shopName] = (cafeCounts[a.shopName] || 0) + 1;
+    if (a.votes != null) cafeVotes[a.shopName] = (cafeVotes[a.shopName] || 0) + a.votes;
+  });
+  const sortedCafes = Object.entries(cafeCounts).sort((a,b) => b[1]-a[1]);
+  const maxCount    = sortedCafes[0]?.[1] || 1;
+  const topCafe     = sortedCafes[0]?.[0] || '---';
+  const activeMonths = new Set(S.archive.map(a => a.month)).size;
+  const totalVotes   = S.archive.reduce((s,a) => s + (a.votes||0), 0);
+
+  const cafeColor = {};
+  sortedCafes.forEach(([name], i) => { cafeColor[name] = COLORS[i % COLORS.length]; });
+
+  // ── Timeline: earliest entry → today ──────────────────
+  const allDates = S.archive.map(a => parseMonth(a.month));
+  const minDate  = new Date(Math.min(...allDates));
+  const maxDate  = new Date(); maxDate.setDate(1);
+  const cells = [];
+  const cur = new Date(minDate);
+  while (cur <= maxDate) {
+    const mStr = cur.toLocaleDateString('en-GB',{month:'long',year:'numeric'}).toUpperCase();
+    const label = cur.toLocaleDateString('en-GB',{month:'short',year:'2-digit'}).toUpperCase();
+    cells.push({ label, visits: S.archive.filter(a => a.month === mStr) });
+    cur.setMonth(cur.getMonth() + 1);
+  }
+
+  // ── Render ─────────────────────────────────────────────
+  el.innerHTML = `
+    <div class="summary-stats">
+      <div class="stat-box">
+        <span class="stat-num">${S.archive.length}</span>
+        <span class="stat-label">TOTAL VISITS</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num" style="font-size:clamp(.45rem,2vw,.7rem)">${esc(topCafe)}</span>
+        <span class="stat-label">MOST VISITED</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">${activeMonths}</span>
+        <span class="stat-label">ACTIVE MONTHS</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">${totalVotes || '—'}</span>
+        <span class="stat-label">VOTES LOGGED</span>
+      </div>
+    </div>
+
+    <div class="lb-section">
+      <div class="lb-title">☕ CAFE LEADERBOARD</div>
+      ${sortedCafes.map(([name, count], i) => `
+        <div class="lb-row">
+          <span class="lb-rank">${['🥇','🥈','🥉'][i] || (i+1)+'.'}</span>
+          <span class="lb-name" title="${esc(name)}">${esc(name)}</span>
+          <div class="lb-bar-wrap">
+            <div class="lb-bar" style="width:${Math.round(count/maxCount*100)}%;background-color:${cafeColor[name]}"></div>
+          </div>
+          <span class="lb-count">${count}✕</span>
+        </div>`).join('')}
+    </div>
+
+    <div class="timeline-section">
+      <div class="lb-title">📅 VISIT TIMELINE</div>
+      <div class="timeline-scroll"><div class="timeline-row">
+        ${cells.map(c => {
+          const col = c.visits.length ? cafeColor[c.visits[0].shopName] : null;
+          return `<div class="timeline-cell">
+            <div class="tl-label">${c.label}</div>
+            <div class="tl-dot ${c.visits.length?'tl-visited':''}" style="${col?`border-color:${col};color:${col}`:''}">${c.visits.length?'☕':'·'}</div>
+            <div class="tl-cafe">${c.visits.length ? esc(c.visits[0].shopName.split(' ')[0]) : ''}</div>
+            ${c.visits.length > 1 ? `<div class="tl-more">+${c.visits.length-1}</div>` : ''}
+          </div>`;
+        }).join('')}
+      </div></div>
+    </div>
+
+    <div class="history-log">
+      <div class="lb-title">📋 VISIT LOG</div>
+      <div class="log-entries">
+        ${S.archive.map(a => `
+          <div class="log-entry">
+            <span class="log-dot" style="background:${cafeColor[a.shopName]||'#ccc'}"></span>
+            <span class="log-month">${esc(a.month)}</span>
+            <span class="log-name">${esc(a.shopName)}</span>
+            ${a.votes != null ? `<span class="log-votes">🏆 ${a.votes}</span>` : ''}
+            <button class="arc-del" onclick="removeHistory('${a.id}')">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function openHistoryModal() {
+  // Pre-fill month with current month
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  document.getElementById('h-month').value = `${yyyy}-${mm}`;
+  document.getElementById('history-modal').classList.add('open');
+  setTimeout(() => document.getElementById('h-name').focus(), 150);
+}
+function closeHistoryModal() { document.getElementById('history-modal').classList.remove('open'); }
+
+function submitHistory(e) {
+  e.preventDefault();
+  const name     = document.getElementById('h-name').value.trim();
+  const monthVal = document.getElementById('h-month').value;
+  const votesVal = document.getElementById('h-votes').value;
+  if (!name || !monthVal) return;
+
+  const [year, mon] = monthVal.split('-');
+  const monthStr = new Date(year, mon - 1).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }).toUpperCase();
+
+  S.archive.unshift({
+    id:       'arc_' + Date.now(),
+    shopName: name,
+    month:    monthStr,
+    votes:    votesVal !== '' ? parseInt(votesVal, 10) : null,
+    addedAt:  Date.now(),
+  });
+  saveState();
+  closeHistoryModal();
+  document.getElementById('history-form').reset();
+  render();
+  toast('>> ' + name.toUpperCase() + ' ADDED TO HISTORY!');
+}
+
+function removeHistory(id) {
+  S.archive = S.archive.filter(a => a.id !== id);
+  saveState();
+  renderArchive();
+  toast('>> REMOVED FROM HISTORY!');
+}
+
+// ════════════════════════════════════════════════════════════
+//  MODALS
+// ════════════════════════════════════════════════════════════
+function openSuggest() {
+  document.getElementById('suggest-modal').classList.add('open');
+  setTimeout(() => document.getElementById('f-name').focus(), 150);
+}
+function closeSuggest() { document.getElementById('suggest-modal').classList.remove('open'); resetVibeInput(); }
+
+function openSpin() {
+  if (!S.suggestions.length) { toast('>> ADD SOME SHOPS FIRST!'); return; }
+  document.getElementById('slot-display').textContent = 'PRESS SPIN';
+  document.getElementById('slot-display').className = '';
+  document.getElementById('slot-result').textContent = '';
+  document.getElementById('spin-btn').textContent = '🎰 SPIN!';
+  document.getElementById('spin-btn').disabled = false;
+  document.getElementById('spin-modal').classList.add('open');
+  ledIdle();
+}
+function closeSpin() { document.getElementById('spin-modal').classList.remove('open'); }
+
+function overlayClick(e, id) {
+  if (e.target !== document.getElementById(id)) return;
+  if (id === 'suggest-modal') closeSuggest();
+  else if (id === 'history-modal') closeHistoryModal();
+  else closeSpin();
+}
+
+// ════════════════════════════════════════════════════════════
+//  SLOT MACHINE
+// ════════════════════════════════════════════════════════════
+let ledTimer = null;
+let slotRunning = false;
+
+function ledIdle() {
+  clearInterval(ledTimer);
+  const leds = [0,1,2,3,4,5,6];
+  let step = 0;
+  ledTimer = setInterval(() => {
+    leds.forEach((_, i) => {
+      document.getElementById('led'+i).className = 'slot-led' + (i === step % 7 ? ' on' : '');
+    });
+    step++;
+  }, 200);
+}
+
+function ledSpin() {
+  clearInterval(ledTimer);
+  let step = 0;
+  ledTimer = setInterval(() => {
+    [0,1,2,3,4,5,6].forEach(i => {
+      document.getElementById('led'+i).className = 'slot-led' + ((step + i) % 2 === 0 ? ' on' : '');
+    });
+    step++;
+  }, 80);
+}
+
+function ledWin() {
+  clearInterval(ledTimer);
+  let on = true;
+  ledTimer = setInterval(() => {
+    [0,1,2,3,4,5,6].forEach(i => {
+      document.getElementById('led'+i).className = 'slot-led' + (on ? ' on' : '');
+    });
+    on = !on;
+  }, 200);
+}
+
+function doSpin() {
+  if (slotRunning || !S.suggestions.length) return;
+  slotRunning = true;
+
+  const items = S.suggestions;
+  const winnerIdx = Math.floor(Math.random() * items.length);
+  const disp = document.getElementById('slot-display');
+  const btn  = document.getElementById('spin-btn');
+  const res  = document.getElementById('slot-result');
+
+  btn.disabled = true;
+  btn.textContent = '🌀 SPINNING...';
+  disp.className = '';
+  res.textContent = '';
+  ledSpin();
+
+  // Total "ticks" to land on winner
+  const baseTicks = 28;
+  const rem = baseTicks % items.length;
+  const extra = (winnerIdx - rem + items.length) % items.length;
+  const totalTicks = baseTicks + extra;
+
+  let tick = 0;
+  function step() {
+    if (tick >= totalTicks) {
+      // Land on winner
+      disp.textContent = items[winnerIdx].name.toUpperCase();
+      disp.className = 'winner-flash';
+      btn.disabled = false;
+      btn.textContent = '🎰 SPIN AGAIN!';
+      res.textContent = '🎉 WINNER: ' + items[winnerIdx].name.toUpperCase() + '!';
+      slotRunning = false;
+      ledWin();
+      confetti();
+      return;
+    }
+
+    const idx = tick % items.length;
+    disp.textContent = items[idx].name.toUpperCase();
+
+    tick++;
+    // Slow down in last 30%
+    const progress = tick / totalTicks;
+    let delay = 60;
+    if (progress > 0.6)  delay = 60 + Math.pow((progress - 0.6) / 0.4, 2) * 380;
+    if (progress > 0.85) delay = 180 + Math.pow((progress - 0.85) / 0.15, 2) * 600;
+
+    setTimeout(step, delay);
+  }
+  step();
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONFETTI (pixel squares)
+// ════════════════════════════════════════════════════════════
+function confetti() {
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const COLORS = ['#FBBF24','#F97316','#34D399','#7C3AED','#EC4899','#818CF8','#F472B6','#FEFCFF'];
+  const pts = Array.from({ length: 120 }, () => ({
+    x:   Math.random() * canvas.width,
+    y:   -8 - Math.random() * 40,
+    sz:  (Math.floor(Math.random() * 3) + 1) * 6, // 6, 12, or 18px — pixel sizes
+    col: COLORS[Math.floor(Math.random() * COLORS.length)],
+    vx:  (Math.random() - .5) * 8,
+    vy:  Math.random() * 3 + 2,
+    rot: Math.floor(Math.random() * 4) * 90, // only 0/90/180/270 — pixel rotation
+    rs:  (Math.random() > .5 ? 90 : -90),    // step rotation
+    timer: 0,
+    rotEvery: Math.floor(Math.random() * 8) + 4,
+  }));
+
+  let frame = 0;
+  function tick() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive = false;
+    pts.forEach(p => {
+      if (p.y > canvas.height + 20) return;
+      alive = true;
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.vy += .15;
+      p.timer++;
+      if (p.timer % p.rotEvery === 0) p.rot = (p.rot + p.rs + 360) % 360;
+
+      ctx.save();
+      ctx.translate(Math.round(p.x), Math.round(p.y));
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.col;
+      ctx.globalAlpha = Math.max(0, 1 - p.y / canvas.height);
+      // Pixel square (crisp, no sub-pixel)
+      ctx.fillRect(-p.sz/2, -p.sz/2, p.sz, p.sz);
+      ctx.restore();
+    });
+
+    if (alive && frame++ < 240) requestAnimationFrame(tick);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ════════════════════════════════════════════════════════════
+//  TOAST
+// ════════════════════════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ════════════════════════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>
